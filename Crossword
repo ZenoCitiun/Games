@@ -1,0 +1,99 @@
+import pygame
+
+# Function to draw the crossword grid and letters
+def draw_crossword(screen, grid, letters, selected):
+    cell_size = 160  # Size of each cell in the grid
+    font = pygame.font.SysFont(None, 72)  # Font size for letters
+
+    for row in range(3):
+        for col in range(3):
+            # Calculate the position for each cell
+            x = col * cell_size
+            y = row * cell_size
+
+            # Draw the grid cell (white box with black border)
+            pygame.draw.rect(screen, (255, 255, 255), (x, y, cell_size, cell_size))
+            pygame.draw.rect(screen, (0, 0, 0), (x, y, cell_size, cell_size), 2)
+
+            # Highlight the selected cell
+            if selected == (row, col):
+                pygame.draw.rect(screen, (255, 0, 0), (x, y, cell_size, cell_size), 2)
+
+            # Draw the letter in the cell if it's not empty
+            if letters[row][col] != '':
+                letter_surface = font.render(letters[row][col], True, (0, 0, 0))
+                letter_rect = letter_surface.get_rect(center=(x + cell_size / 2, y + cell_size / 2))
+                screen.blit(letter_surface, letter_rect)
+
+# Function to check if the player has won
+def check_win(letters, solution):
+    for row in range(3):
+        for col in range(3):
+            if letters[row][col] != solution[row][col]:
+                return False
+    return True
+
+def main():
+    pygame.init()
+    SCREEN = pygame.display.set_mode((480, 480))
+    pygame.display.set_caption("Interactive Crossword Puzzle")
+
+    # Crossword grid and letters (3x3 for simplicity)
+    crossword_letters = [
+        ['C', '', 'T'],
+        ['', 'P', ''],
+        ['R', '', 'T']
+    ]
+
+    # The correct solution to the puzzle
+    crossword_solution = [
+        ['C', 'A', 'T'],
+        ['A', 'P', 'E'],
+        ['R', 'A', 'T']
+    ]
+
+    # Initial selected cell
+    selected_cell = None
+    game_won = False
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+
+            if not game_won:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    # Get the mouse position
+                    mouse_x, mouse_y = event.pos
+                    # Calculate the row and column of the clicked cell
+                    col = mouse_x // 160
+                    row = mouse_y // 160
+                    # Select the cell
+                    selected_cell = (row, col)
+
+                if event.type == pygame.KEYDOWN and selected_cell:
+                    # Get the pressed key and ensure it's a letter
+                    if event.unicode.isalpha():
+                        # Update the selected cell with the pressed letter (uppercase)
+                        crossword_letters[selected_cell[0]][selected_cell[1]] = event.unicode.upper()
+
+                        # Check if the player has won after the update
+                        game_won = check_win(crossword_letters, crossword_solution)
+
+        # Fill the screen with white color
+        SCREEN.fill((255, 255, 255))
+
+        # Draw the crossword puzzle
+        draw_crossword(SCREEN, None, crossword_letters, selected_cell)
+
+        if game_won:
+            # Display a winning message
+            font = pygame.font.SysFont(None, 72)
+            win_message = font.render("You Win!", True, (0, 255, 0))
+            SCREEN.blit(win_message, (120, 200))
+
+        # Update the display
+        pygame.display.flip()
+
+main()
